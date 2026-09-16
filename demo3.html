@@ -129,5 +129,27 @@ document.getElementById('submitBtn').addEventListener('click', ()=>{
   // 如果需要接入后端价格查询，这里会发起 fetch 请求到价格接口并展示实时价格。
 });
 </script>
+  <script>
+async function loadPrices() {
+  try {
+    const res = await fetch('/data/prices_2026-09-16.json', {cache: "no-cache"});
+    if (!res.ok) throw new Error('fetch prices failed: ' + res.status);
+    const data = await res.json();
+    // 在页面上显示（一个简单例子：插入到 id="price-area"）
+    const area = document.getElementById('price-area') || (function(){
+      const a=document.createElement('div'); a.id='price-area'; a.style.padding='16px'; document.body.prepend(a); return a;
+    })();
+    area.innerHTML = `<h3>最新价格快照 (${data.meta.date})</h3>` +
+      data.models.map(m => {
+        const cny = m.price_cny ? `￥${m.price_cny}` : 'CNY: TBD';
+        const usd = m.price_usd ? `$${m.price_usd}` : '';
+        return `<div style="margin:8px 0"><strong>${m.brand} ${m.model}</strong> — ${cny} ${usd}<div style="font-size:12px;color:#666">${m.note || ''} <a href="${m.source}" target="_blank">来源</a></div></div>`;
+      }).join('');
+  } catch (err) {
+    console.error(err);
+  }
+}
+document.addEventListener('DOMContentLoaded', loadPrices);
+</script>
 </body>
 </html>
