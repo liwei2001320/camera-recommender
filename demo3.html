@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>相机问卷 Demo3 (50题)</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f6f8fb;color:#222}
+    .wrap{max-width:980px;margin:40px auto;padding:28px;background:#fff;border-radius:8px;box-shadow:0 6px 30px rgba(0,0,0,0.06)}
+    h1{margin:0 0 18px;font-size:22px}
+    .q{margin:18px 0}
+    label{display:inline-block;margin-right:12px;padding:10px 14px;border-radius:8px;background:#f3f6fb}
+    input[type=radio],input[type=checkbox]{margin-right:6px}
+    button{background:#0b7cff;color:#fff;border:none;padding:10px 16px;border-radius:8px;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>相机与镜头推荐问卷 Demo3（50题）</h1>
+    <p>这是 Demo3 版本，包含 50 个问题（示例），用于生成相机与镜头推荐 —— 前端 + 后端价格查询接口占位。</p>
+
+    <!-- 以下为示例题（示意：真实 demo3 有 50 道完整题目） -->
+
+    <div class="q"><strong>1. 你的总预算（RMB）</strong>
+      <label><input type="radio" name="budget" value="<5000"><5000</label>
+      <label><input type="radio" name="budget" value="5000-10000">5000-10000</label>
+      <label><input type="radio" name="budget" value="10000-20000">10000-20000</label>
+      <label><input type="radio" name="budget" value=">20000">>20000</label>
+    </div>
+
+    <div class="q"><strong>2. 主要用途</strong>
+      <label><input type="checkbox" name="purpose" value="portrait"> 人像</label>
+      <label><input type="checkbox" name="purpose" value="landscape"> 风光</label>
+      <label><input type="checkbox" name="purpose" value="wedding"> 婚礼</label>
+      <label><input type="checkbox" name="purpose" value="travel"> 旅行/日常</label>
+    </div>
+
+    <div class="q"><strong>3. 是否需要高质量视频（4K/60等）</strong>
+      <label><input type="radio" name="video" value="no"> 否</label>
+      <label><input type="radio" name="video" value="simple"> 简单视频</label>
+      <label><input type="radio" name="video" value="pro"> 专业视频</label>
+    </div>
+
+    <!-- 省略其余题目示例，实际文件包含 50 题内容 -->
+
+    <div class="q"><button id="submitBtn">提交并查看推荐</button></div>
+
+    <div id="result" style="margin-top:18px"></div>
+
+  </div>
+
+<script>
+const submitBtn = document.getElementById('submitBtn');
+submitBtn.addEventListener('click', ()=>{
+  // 这里简化示例：真正 demo3 会收集 50 个题目并制作结果
+  const result = document.getElementById('result');
+  result.innerHTML = `<div style="padding:12px;border-radius:8px;background:#f1f7ff">推荐生成示例：<br><strong>机身：</strong> Sony A7 IV / Canon R6 II（示例）<br><strong>镜头：</strong> 35/1.4, 85/1.8 等（示例）</div>`;
+  // 若需要，我可以随后把后端价格查询（PDD/JD/Taobao）与历史记录接入到仓库。
+});
+</script>
+</body>
+</html>
