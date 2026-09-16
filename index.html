@@ -159,8 +159,14 @@
 
   <script src="js/app.js"></script>
   <script src="js/survey-budget.js"></script>
-</body><script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-<script src="/js/firebase-config.local.js"></script>   <!-- 我已放在仓库的文件 -->
-<script src="/js/firebase-init.local.js"></script>    <!-- 我已放在仓库的文件 -->
+
+  <!-- Firebase SDKs：必须按顺序加载 -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+  <!-- 我已放到仓库的本地配置/初始化文件 -->
+  <script src="/js/firebase-config.local.js"></script>
+  <script src="/js/firebase-init.local.js"></script>
+
+</body>
 </html>
