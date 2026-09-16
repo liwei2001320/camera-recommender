@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "date": "2026-09-16",
+    "source_note": "初始快照：部分价格为海外厂商/媒体价格或待定（TBD）; 国内电商价会后续替换"
+  },
+  "models": [
+    {
+      "brand": "Canon",
+      "model": "EOS R8 Mark II",
+      "sku": "R8-II-kit-RF24-50",
+      "price_cny": null,
+      "price_usd": 999.00,
+      "note": "官方上架（US 店面），中国公开售价待发布。参见 Canon 官方页面。",
+      "source": "https://www.usa.canon.com/shop/p/eos-r8-mark-ii-rf24-50mm-f4-5-6-3-is-stm-lens-kit"
+    },
+    {
+      "brand": "Canon",
+      "model": "EOS R8",
+      "price_cny": 6999,
+      "price_usd": 799.00,
+      "note": "示例历史价（请按实际电商页面替换）",
+      "source": "https://www.jd.com/..."
+    }
+  ]
+}
