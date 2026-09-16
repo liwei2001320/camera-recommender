@@ -1,172 +1,163 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>相机调查与推荐 | Camera Recommender</title>
-  <meta name="description" content="中英双语的相机调查问卷与推荐工具。支持保存历史、导出、机型对比。" />
-  <link rel="stylesheet" href="css/style.css" />
-  <meta property="og:title" content="Camera Recommender" />
-  <meta property="og:description" content="中英双语的相机调查问卷与推荐工具。" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>相机与镜头推荐问卷（Demo v3 + 实时价格）</title>
+<script>window.PRICE_SERVICE_BASE='https://camera-recommender-production.up.railway.app';</script>
+<style>
+  body{font-family: system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif; background:#f5f7fb; color:#071022;}
+  .container{max-width:1100px;margin:18px auto;padding:18px;background:#fff;border-radius:8px;box-shadow:0 6px 22px rgba(8,15,30,.06)}
+  h1{font-size:20px;margin:0 0 14px}
+  .q{margin-bottom:12px}
+  .btn{padding:8px 12px;border-radius:6px;border:1px solid #e3e7ef;background:#f7f9fc;cursor:pointer}
+  .selected{background:#dfefff}
+  .hidden{display:none}
+</style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="container">
-      <h1 id="brand">Camera Recommender</h1>
-      <div class="controls">
-        <button id="langBtn">EN</button>
-        <a class="github" href="https://github.com/liwei2001320/camera-recommender" target="_blank">Repo</a>
-      </div>
-    </div>
-  </header>
+<div class="container">
+<h1>相机与镜头推荐问卷 Demo（含实时价格）</h1>
+<p>这是一个演示版问卷（前端 + 后端价格查询）。品牌和画幅有限制：只参考索尼/佳能/尼康/富士/松下，且只显示国行全新在售价格（来自京东/淘宝/拼多多聚合）。</p>
+<div id="quiz"></div>
+<div id="result" class="hidden">
+  <h2>推荐结果</h2>
+  <div id="recommendations"></div>
+</div>
+<script>
+const QUESTIONS = [
+  {id:'budget', q:'你的预算（人民币，摄影全套）', type:'choice', options:['<5000','5000-10000','10000-20000','20000-40000','>40000']},
+  {id:'primary_use', q:'主要用途', type:'choice', options:['人像','风光','婚礼','旅行/日常','直播/Vlog','体育/野生动物']},
+  {id:'prefer_brand', q:'偏好品牌（可多选）', type:'multi', options:['索尼','佳能','尼康','富士','松下']},
+  {id:'need_video', q:'是否需要高质量视频功能', type:'choice', options:['否','简单视频','专业视频']},
+  {id:'size_weight', q:'是否在意机身体积与重量', type:'choice', options:['不在意','有点在意','非常在意']},
+  {id:'autofocus', q:'是否有强烈对焦性能需求（体育/动物）', type:'choice', options:['否','中等','非常需要']},
+  {id:'lowlight', q:'是否经常在弱光环境拍摄', type:'choice', options:['否','偶尔','经常']},
+  {id:'stabilization', q:'是否需要机身防抖（IBIS）', type:'choice', options:['不需要','希望有','必须有']},
+  {id:'lens_budget', q:'你愿意为镜头单支投入（人民币）', type:'choice', options:['<2000','2000-5000','5000-10000','>10000']},
+  {id:'zoom_vs_prime', q:'偏好：变焦还是定焦', type:'choice', options:['变焦','定焦','都可以']},
+  {id:'travel_frequency', q:'旅行频率', type:'choice', options:['很少','每年几次','经常出差/旅行']},
+  {id:'still_or_video_ratio', q:'拍摄静态/视频占比', type:'choice', options:['主要静态','大约5:5','主要视频']},
+  {id:'future_upgrade', q:'是否计划未来升级系统（更换机身）', type:'choice', options:['不考虑','考虑1-2年','经常升级']},
+  {id:'used_or_new', q:'偏好：全新国行还是可接受二手/水货', type:'choice', options:['只要全新国行','可接受二手']},
+  {id:'shooting_distance', q:'常拍距离（近/中/远）', type:'choice', options:['近焦','中等距离','远摄']},
+  {id:'event_size', q:'是否拍大型活动（需多焦段）', type:'choice', options:['否','小型','大型']},
+  {id:'portrait_preference', q:'是否首要拍人像（需要皮肤色彩/人像模式）', type:'choice', options:['否','一般','是']},
+  {id:'brand_ecosystem', q:'是否在意系统可选镜头数量（生态）', type:'choice', options:['不在意','在意','非常在意']},
+  {id:'sensor_size', q:'偏好传感器画幅', type:'choice', options:['全画幅','中画幅','APS-C (半画幅)','micro4/3']},
+  {id:'other', q:'其他偏好/说明（可空）', type:'text'}
+];
 
-  <main class="container">
-    <section id="intro" class="card">
-      <h2 class="title">中英双语 — 相机选购问卷</h2>
-      <p class="lead">回答几个简单问题，我们会基于预算、用途与偏好给出推荐（机身/镜头分配支持）。</p>
-      <div class="actions">
-        <button id="startBtn" class="primary">开始问卷 / Start survey</button>
-        <button id="resumeBtn" class="secondary">查看历史 / History</button>
-      </div>
-    </section>
+const QUIZ = document.getElementById('quiz');
+const RESULT = document.getElementById('result');
+const RECO = document.getElementById('recommendations');
 
-    <section id="survey" class="card hidden">
-      <form id="surveyForm">
-        <div class="step" data-step="1">
-          <h3 class="step-title">问题 1 — 总预算 / Budget</h3>
-          <p>请选择你的总预算区间（RMB）。可选 A/B/C 快速选择，或选择“自定义”填写准确区间。</p>
+function renderQuiz(){
+  QUESTIONS.forEach(q=>{
+    const div = document.createElement('div'); div.className='q';
+    const label = document.createElement('div'); label.innerText = q.q; div.appendChild(label);
+    if(q.type==='choice'){
+      q.options.forEach(opt=>{
+        const btn = document.createElement('button'); btn.className='btn'; btn.style.margin='6px'; btn.innerText=opt;
+        btn.onclick=()=>{document.querySelectorAll('[data-q="'+q.id+'"]').forEach(x=>x.classList.remove('selected')); btn.classList.add('selected'); btn.setAttribute('data-q', q.id); btn.setAttribute('data-val', opt); btn.dataset.q=q.id; btn.dataset.val=opt; btn.dataset.selected='1'; btn.dataset.qid=q.id; btn.setAttribute('data-q',q.id);}
+        btn.setAttribute('data-q',q.id);
+        div.appendChild(btn);
+      });
+    } else if(q.type==='multi'){
+      q.options.forEach(opt=>{
+        const chk = document.createElement('label'); chk.style.margin='6px';
+        const inp = document.createElement('input'); inp.type='checkbox'; inp.value=opt; inp.dataset.q=q.id; chk.appendChild(inp); chk.appendChild(document.createTextNode(' '+opt)); div.appendChild(chk);
+      });
+    } else if(q.type==='text'){
+      const ta = document.createElement('input'); ta.type='text'; ta.style.width='60%'; ta.dataset.q=q.id; div.appendChild(ta);
+    }
+    QUIZ.appendChild(div);
+  });
+  const submit = document.createElement('button'); submit.className='btn'; submit.innerText='提交并获取推荐'; submit.onclick=onSubmit; QUIZ.appendChild(submit);
+}
 
-          <div id="budgetOptions" class="form-group">
-            <label><input type="radio" name="budgetOpt" value="A"> A：5,000 — 15,000 RMB（入门 / 爱好者）</label><br>
-            <label><input type="radio" name="budgetOpt" value="B"> B：15,001 — 30,000 RMB（进阶 / 半专业）</label><br>
-            <label><input type="radio" name="budgetOpt" value="C"> C：30,001 — 50,000 RMB（专业 / 高端）</label><br>
-            <label><input type="radio" name="budgetOpt" value="custom"> 自定义</label>
-            <div id="customBudgetInputs" style="display:none; margin-top:8px;">
-              最低：<input id="customMin" type="number" placeholder="最低预算 (RMB)"/> 最高：<input id="customMax" type="number" placeholder="最高预算 (RMB)"/>
-            </div>
-          </div>
+function collectAnswers(){
+  const ans={};
+  QUESTIONS.forEach(q=>{
+    if(q.type==='choice'){
+      const sel = Array.from(document.querySelectorAll('[data-q="'+q.id+'"]')).find(b=>b.classList.contains('selected'));
+      ans[q.id]= sel? sel.dataset.val : null;
+    } else if(q.type==='multi'){
+      ans[q.id]= Array.from(document.querySelectorAll('input[type=checkbox][data-q="'+q.id+'"]:checked')).map(i=>i.value);
+    } else if(q.type==='text'){
+      ans[q.id]= document.querySelector('input[type=text][data-q="'+q.id+'"]').value;
+    }
+  });
+  return ans;
+}
 
-          <div id="budgetHint" style="color:#666; margin-top:12px;"></div>
+function scoreAndRecommend(ans){
+  const budget = ans.budget || '<5000';
+  const sensor = ans.sensor_size || '全画幅';
+  const use = ans.primary_use || '旅行/日常';
+  const recs = [];
+  if(sensor==='中画幅' || budget=='>40000'){
+    recs.push({title:'Fujifilm GFX 50S II', reason:'追求极致画质/中画幅', price_query:'Fujifilm GFX 50S'});
+  }
+  if(sensor==='全画幅'){
+    if(use==='人像' || ans.portrait_preference==='是'){
+      recs.push({title:'Sony A7 IV', reason:'人像兼顾视频与照片，自动对焦强', price_query:'Sony A7 IV'});
+      recs.push({title:'Canon R6 Mark II', reason:'人像/婚礼优秀，色彩好', price_query:'Canon R6 Mark II'});
+    } else if(use==='风光'){
+      recs.push({title:'Nikon Z7 II', reason:'高像素更适合风光', price_query:'Nikon Z7 II'});
+      recs.push({title:'Sony A7R IV', reason:'高像素风光首选', price_query:'Sony A7R IV'});
+    } else if(use==='体育/野生动物' || ans.autofocus==='非常需要'){
+      recs.push({title:'Sony A1', reason:'顶级对焦与连拍', price_query:'Sony A1'});
+    } else {
+      recs.push({title:'Sony A7 IV', reason:'平衡型全能机', price_query:'Sony A7 IV'});
+      recs.push({title:'Canon R8', reason:'轻便全幅，适合旅行/视频', price_query:'Canon R8'});
+    }
+  }
+  const lens = (budget==='5000-10000' || budget==='10000-20000') ? '24-70mm 镜头' : '24-105mm 镜头';
+  recs.forEach(r=> r.lens = lens);
+  return recs.slice(0,4);
+}
 
-          <!-- 隐藏字段，提交时会发送 -->
-          <input type="hidden" id="budgetMin" name="budgetMin" value="" />
-          <input type="hidden" id="budgetMax" name="budgetMax" value="" />
-        </div>
+async function fetchPrice(query){
+  const base = window.PRICE_SERVICE_BASE || '';
+  const url = (base? base + '/api/price?q=' : '/api/price?q=') + encodeURIComponent(query);
+  try{
+    const resp = await fetch(url);
+    if(!resp.ok) return null;
+    const j = await resp.json();
+    return j.results || j || null;
+  }catch(e){
+    console.error(e);
+    return null;
+  }
+}
 
-        <div class="step hidden" data-step="2">
-          <h3 class="step-title">问题 2 — 机身 / 镜头 分配</h3>
-          <p>请选择你打算把总预算中分配给机身与镜头的大致比例（预设或自定义）。</p>
+async function onSubmit(){
+  const ans = collectAnswers();
+  const recs = scoreAndRecommend(ans);
+  RECO.innerHTML='';
+  for(const r of recs){
+    const div = document.createElement('div');
+    const h = document.createElement('h3'); h.innerText = r.title; div.appendChild(h);
+    const p = document.createElement('p'); p.innerText = r.reason + '。 推荐镜头: ' + r.lens; div.appendChild(p);
+    const priceBox = document.createElement('div'); priceBox.innerText = '查询价格中...'; div.appendChild(priceBox);
+    RECO.appendChild(div);
+    const price = await fetchPrice(r.price_query || r.title);
+    if(price && price.length){
+      const item = price[0];
+      priceBox.innerHTML = `价格：${item.price? item.price+' 元' : '未找到'} 来源：${item.source||'mock'}` + (item.link? ` <a href="${item.link}" target="_blank">购买链接</a>`:'');
+    } else if(price && price.price){
+      priceBox.innerHTML = `价格：${price.price} 元 来源：${price.source||'mock'}` + (price.link? ` <a href="${price.link}" target="_blank">购买链接</a>`:'');
+    } else {
+      priceBox.innerText = '未查询到价格（demo 模式）';
+    }
+  }
+  RESULT.classList.remove('hidden');
+  window.scrollTo(0,document.body.scrollHeight);
+}
 
-          <div id="allocOptions" class="form-group">
-            <label><input type="radio" name="allocOpt" value="50-50"> 5:5（机身50% / 镜头50%） — 均衡推荐</label><br>
-            <label><input type="radio" name="allocOpt" value="80-20"> 8:2（机身80% / 镜头20%） — 偏机身/一次性投入</label><br>
-            <label><input type="radio" name="allocOpt" value="20-80"> 2:8（机身20% / 镜头80%） — 偏镜头/长期扩展</label><br>
-            <label><input type="radio" name="allocOpt" value="customAlloc"> 自定义</label>
-            <div id="customAllocInputs" style="display:none; margin-top:8px;">
-              机身占比：<input id="bodyPercent" type="range" min="10" max="90" step="5" value="50" />
-              <span id="bodyPercentVal">50%</span>
-            </div>
-          </div>
-
-          <!-- 隐藏字段 -->
-          <input type="hidden" id="bodyBudget" name="bodyBudget" value="" />
-          <input type="hidden" id="lensBudget" name="lensBudget" value="" />
-          <input type="hidden" id="bodyPercentHidden" name="bodyPercent" value="" />
-        </div>
-
-        <div class="step hidden" data-step="3">
-          <h3 class="step-title">用途 & 偏好 / Use & Preferences</h3>
-          <label>主要用途
-            <select id="useCase" multiple>
-              <option value="travel">旅游 / Travel</option>
-              <option value="portrait">人像 / Portrait</option>
-              <option value="landscape">风光 / Landscape</option>
-              <option value="street">街拍 / Street</option>
-              <option value="wedding">婚礼 / Wedding</option>
-              <option value="video">视频 / Video</option>
-              <option value="studio">商业/影棚 / Studio</option>
-            </select>
-          </label>
-
-          <label>便携性偏好 (1-5) <input type="range" id="portability" min="1" max="5" value="3" /></label>
-          <label>画质优先级 (1-5) <input type="range" id="prioImage" min="1" max="5" value="4" /></label>
-          <label>对焦优先级 (1-5) <input type="range" id="prioAF" min="1" max="5" value="4" /></label>
-          <label>防抖优先级 (1-5) <input type="range" id="prioIBIS" min="1" max="5" value="3" /></label>
-          <label>后期处理偏好
-            <select id="postProcessing">
-              <option value="light">轻度（直出优先）</option>
-              <option value="medium">中度（常调色）</option>
-              <option value="heavy">重度（RAW 精修）</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="step hidden" data-step="4">
-          <h3 class="step-title">品牌筛选 / Brands</h3>
-          <label><input type="checkbox" class="brand" value="Panasonic" checked /> Panasonic / 松下</label>
-          <label><input type="checkbox" class="brand" value="Sony" checked /> Sony / 索尼</label>
-          <label><input type="checkbox" class="brand" value="Nikon" checked /> Nikon / 尼康</label>
-          <label><input type="checkbox" class="brand" value="Canon" checked /> Canon / 佳能</label>
-          <label><input type="checkbox" class="brand" value="Fujifilm" checked /> Fujifilm / 富士</label>
-        </div>
-
-        <div class="step hidden" data-step="5">
-          <h3 class="step-title">照片 vs 视频 / Photo vs Video</h3>
-          <label>你对视频的需求<strong>(必要/可选/无需求)</strong>
-            <select id="videoNeed">
-              <option value="required">必要 / Required</option>
-              <option value="optional">可选 / Optional</option>
-              <option value="none">无需求 / None</option>
-            </select>
-          </label>
-
-          <label>你是否经常需要高帧率(>60fps)视频？
-            <select id="highFPS"><option value="yes">是</option><option value="no">否</option></select>
-          </label>
-        </div>
-
-        <div class="step hidden" data-step="6">
-          <h3 class="step-title">确认 / Confirm</h3>
-          <p class="muted">检查并点击提交 / Review and submit</p>
-          <div class="actions">
-            <button type="button" id="prevBtn" class="secondary">上一步 / Prev</button>
-            <button type="submit" id="submitBtn" class="primary">提交并推荐 / Submit</button>
-          </div>
-        </div>
-      </form>
-    </section>
-
-    <section id="result" class="card hidden">
-      <h3>推荐结果 / Recommendations</h3>
-      <div id="recommendations"></div>
-      <div class="actions">
-        <button id="compareBtn" class="secondary">对比所选 / Compare</button>
-        <button id="saveBtn" class="primary">保存结果 / Save</button>
-        <button id="exportBtn" class="secondary">导出 CSV / Export CSV</button>
-        <button id="shareBtn" class="secondary">生成分享链接 / Share</button>
-      </div>
-      <div id="compareArea" class="hidden"></div>
-    </section>
-
-    <section id="history" class="card hidden">
-      <h3>历史结果 / History</h3>
-      <div id="historyList"></div>
-      <div class="actions"><button id="clearHistory" class="secondary">清空历史 / Clear</button></div>
-    </section>
-
-    <footer class="muted center">© Camera Recommender — 中英双语 · 极简设计</footer>
-  </main>
-
-  <script src="js/app.js"></script>
-  <script src="js/survey-budget.js"></script>
-
-  <!-- Firebase SDKs：必须按顺序加载 -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-
-  <!-- 我已放到仓库的本地配置/初始化文件 -->
-  <script src="/js/firebase-config.local.js"></script>
-  <script src="/js/firebase-init.local.js"></script>
-
+renderQuiz();
+</script>
+</div>
 </body>
 </html>
