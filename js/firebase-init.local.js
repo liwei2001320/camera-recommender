@@ -33,4 +33,19 @@
       throw err;
     }
   };
+
+  // Backwards-compatible wrapper expected by the existing app.js
+  window.sendSubmission = async function (payload) {
+    if (typeof window.saveSubmissionToFirestore === 'function') {
+      try {
+        return await window.saveSubmissionToFirestore(payload);
+      } catch (err) {
+        console.warn('saveSubmissionToFirestore failed', err);
+        throw err;
+      }
+    } else {
+      console.warn('saveSubmissionToFirestore not available');
+      return { ok: false, error: 'save-not-available' };
+    }
+  };
 })();
