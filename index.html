@@ -1,21 +1,191 @@
+
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <!-- primary: jsDelivr CDN (已对括号编码) -->
-    <meta http-equiv="refresh" content="0;url=https://cdn.jsdelivr.net/gh/liwei2001320/camera-recommender@main/camera_quiz_demo_v3%281%29.html" />
-    <script>
-      // JS 备用跳转（同样指向 jsDelivr）
-      location.href = 'https://cdn.jsdelivr.net/gh/liwei2001320/camera-recommender@main/camera_quiz_demo_v3%281%29.html';
-    </script>
-    <title>Redirecting to Camera quiz demo3...</title>
-  </head>
-  <body>
-    Redirecting to demo3 — if you are not redirected automatically, click:
-    <a href="https://cdn.jsdelivr.net/gh/liwei2001320/camera-recommender@main/camera_quiz_demo_v3(1).html">demo3（直接打开）</a>
-    <p>备用 raw 链接（如果 CDN 不工作可尝试）：</p>
-    <a href="https://raw.githubusercontent.com/liwei2001320/camera-recommender/main/camera_quiz_demo_v3(1).html">
-      raw.githubusercontent.com demo3
-    </a>
-  </body>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8" />
+  <title>Camera Recommender — Demo v4 (Local Preview)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:20px; color:#111;}
+    h1,h2{color:#0b66c2}
+    .q{margin:12px 0;padding:10px;border-radius:8px;background:#f7f9fc}
+    label{display:block;margin:6px 0;cursor:pointer}
+    .side{position:fixed;right:16px;top:16px;width:320px;border:1px solid #eee;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06);padding:12px}
+    .recommend{margin-top:12px;padding:10px;border-radius:8px;background:#e9f7ef}
+    .price{font-size:13px;color:#444}
+    .small{font-size:12px;color:#666}
+    button{background:#0b66c2;color:#fff;border:0;padding:10px 14px;border-radius:6px;font-weight:600;cursor:pointer}
+    footer{margin-top:24px;color:#666;font-size:13px}
+  </style>
+</head>
+<body>
+  <h1>Camera Recommender — Demo v4</h1>
+  <p>这是一个基于你本地 demo 的静态部署版本（已简化为单文件）。答案会基于内置价格快照给出推荐。此页面适合直接放到 GitHub Pages 或 Netlify。</p>
+
+  <form id="quiz">
+    <div class="q">
+      <strong>1) 预算范围（机身+镜头预算）</strong>
+      <label><input type="radio" name="budget" value="<5000"> 小于 ¥5,000</label>
+      <label><input type="radio" name="budget" value="5000-10000"> ¥5,000 - ¥10,000</label>
+      <label><input type="radio" name="budget" value="10000-20000"> ¥10,000 - ¥20,000</label>
+      <label><input type="radio" name="budget" value=">20000"> 大于 ¥20,000</label>
+    </div>
+
+    <div class="q">
+      <strong>2) 主要用途（可多选）</strong>
+      <label><input type="checkbox" name="purpose" value="photo"> 拍照片（风光/人像/街拍）</label>
+      <label><input type="checkbox" name="purpose" value="video"> 拍视频（短片/直播/婚礼）</label>
+      <label><input type="checkbox" name="purpose" value="travel"> 旅行随身轻便</label>
+      <label><input type="checkbox" name="purpose" value="studio"> 工作室/商业拍摄</label>
+    </div>
+
+    <div class="q">
+      <strong>3) 对体积/重量是否敏感？</strong>
+      <label><input type="radio" name="portable" value="low"> 不在意（更看性能）</label>
+      <label><input type="radio" name="portable" value="medium"> 一般，会考虑便携</label>
+      <label><input type="radio" name="portable" value="high"> 非常敏感（尽量轻便）</label>
+    </div>
+
+    <div class="q">
+      <strong>4) 是否需要优秀的视频功能（如 4K/高帧率/专业对焦）？</strong>
+      <label><input type="radio" name="video_need" value="yes"> 是</label>
+      <label><input type="radio" name="video_need" value="no"> 否</label>
+    </div>
+
+    <!-- 为示例保留到 10 题；实际你会替换完整 50 题 -->
+    <div class="q">
+      <strong>5) 喜欢的品牌（可多选）</strong>
+      <label><input type="checkbox" name="brand" value="Canon"> Canon</label>
+      <label><input type="checkbox" name="brand" value="Sony"> Sony</label>
+      <label><input type="checkbox" name="brand" value="Nikon"> Nikon</label>
+      <label><input type="checkbox" name="brand" value="Panasonic"> Panasonic</label>
+      <label><input type="checkbox" name="brand" value="Fujifilm"> Fujifilm</label>
+    </div>
+
+    <div class="q">
+      <strong>6) 拍摄题材偏好</strong>
+      <label><input type="radio" name="genre" value="portrait"> 人像</label>
+      <label><input type="radio" name="genre" value="landscape"> 风光</label>
+      <label><input type="radio" name="genre" value="street"> 街拍</label>
+      <label><input type="radio" name="genre" value="mixed"> 多场景混合</label>
+    </div>
+
+    <div class="q">
+      <strong>7) 是否打算拍高像素（风光/大画幅裁切需求）？</strong>
+      <label><input type="radio" name="megapixel" value="yes"> 是</label>
+      <label><input type="radio" name="megapixel" value="no"> 否</label>
+    </div>
+
+    <div class="q">
+      <strong>8) 是否经常在夜景/弱光拍摄？</strong>
+      <label><input type="radio" name="lowlight" value="yes"> 经常</label>
+      <label><input type="radio" name="lowlight" value="no"> 不常</label>
+    </div>
+
+    <div class="q">
+      <strong>9) 你是摄影小白，还是有一定基础？</strong>
+      <label><input type="radio" name="skill" value="beginner"> 小白（刚入门）</label>
+      <label><input type="radio" name="skill" value="intermediate"> 有基础</label>
+      <label><input type="radio" name="skill" value="pro"> 专业/半专业</label>
+    </div>
+
+    <div class="q">
+      <strong>10) 是否需要防抖/防尘防滴功能？</strong>
+      <label><input type="radio" name="weather" value="yes"> 需要</label>
+      <label><input type="radio" name="weather" value="no"> 不需要</label>
+    </div>
+
+    <div style="margin-top:18px">
+      <button id="submit_quiz">提交并获取推荐</button>
+    </div>
+  </form>
+
+  <div class="side" id="sidePanel">
+    <h3>当日价格快照（示例）</h3>
+    <div id="priceList" class="small"></div>
+    <div class="recommend" id="recommendBox"><strong>推荐结果将显示在此处</strong></div>
+  </div>
+
+  <footer>
+    Demo 说明：此页面为静态演示，价格为示例快照；最终你会把完整 JSON 上传替换，或接入实时价格 API。
+  </footer>
+
+<script>
+// Load price JSON (relative path)
+async function loadPrices(){
+  try{
+    const res = await fetch('./data/prices_2026-09-16.json');
+    if(!res.ok) throw new Error('价格数据加载失败: '+res.status);
+    const data = await res.json();
+    const list = document.getElementById('priceList');
+    list.innerHTML = data.models.map(m=>`<div><strong>${m.brand} ${m.model}</strong><div class="price">¥${m.price_cny} · <a href="${m.source_url}" target="_blank">来源</a></div></div>`).join('');
+    window.priceData = data.models;
+  }catch(e){
+    document.getElementById('priceList').innerText = '无法加载价格数据：'+e.message;
+    window.priceData = [];
+    console.error(e);
+  }
+}
+
+function getAnswers(){
+  const form = document.getElementById('quiz');
+  const fd = new FormData(form);
+  const out = {};
+  for(const [k,v] of fd.entries()){
+    if(out[k]){
+      if(Array.isArray(out[k])) out[k].push(v); else out[k]=[out[k],v];
+    } else out[k]=v;
+  }
+  // Also collect checkboxes with same name not in FormData default handling
+  // (FormData handles checkboxes but in case of non-checked values, ensure keys exist)
+  return out;
+}
+
+function scoreAndRecommend(answers){
+  const pool = window.priceData || [];
+  if(!pool.length) return {error:'价格池为空'};
+  // Simple scoring
+  const budget = answers.budget || '';
+  const wantsVideo = (answers.video_need==='yes') || (answers.purpose && (answers.purpose.includes('video')));
+  const portable = answers.portable || 'medium';
+  const genre = answers.genre || '';
+
+  let candidates = pool.slice();
+  // Budget filter
+  if(budget.includes('<5000')) candidates = candidates.filter(p=>p.price_cny<=5000);
+  else if(budget.includes('5000-10000')) candidates = candidates.filter(p=>p.price_cny<=10000);
+  else if(budget.includes('10000-20000')) candidates = candidates.filter(p=>p.price_cny<=20000);
+  else if(budget.includes('>20000')) candidates = candidates.filter(p=>p.price_cny>20000);
+
+  // Video preference: boost cam with 'FX' or known video models
+  if(wantsVideo) candidates.sort((a,b)=> (b.price_cny - a.price_cny));
+  else candidates.sort((a,b)=> (a.price_cny - b.price_cny));
+
+  // portability: if high, prefer lighter models (we simulate by price < 15000)
+  if(portable==='high') candidates = candidates.filter(p=>p.price_cny<=15000);
+
+  if(!candidates.length) return {error:'没有符合条件的机型，试着放宽预算或偏好'};
+
+  // Return top 3
+  return {candidates:candidates.slice(0,3)};
+}
+
+function renderResult(res){
+  const box = document.getElementById('recommendBox');
+  if(res.error){ box.innerHTML = '<div class="small">'+res.error+'</div>'; return; }
+  box.innerHTML = '<h4>为你推荐（示例）</h4>' + res.candidates.map(c=>`<div><strong>${c.brand} ${c.model}</strong><div class="small">¥${c.price_cny} · 来源: <a href="${c.source_url}" target="_blank">来源</a></div></div>`).join('');
+}
+
+// Bind submit
+document.getElementById('submit_quiz').addEventListener('click', function(e){
+  e.preventDefault();
+  const answers = getAnswers();
+  const res = scoreAndRecommend(answers);
+  renderResult(res);
+});
+
+// Init
+loadPrices();
+</script>
+</body>
 </html>
