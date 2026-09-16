@@ -1,4 +1,4 @@
-// App logic for Camera Recommender - minimal viable
+// App logic for Camera Recommender - enhanced UX (dynamic, minimal questions first)
 const qs = (sel) => document.querySelector(sel);
 const qsa = (sel) => Array.from(document.querySelectorAll(sel));
 
@@ -13,10 +13,9 @@ async function init(){
     console.warn('无法载入机型数据', e);
     cameras = [];
   }
-  // if shared result in url
+  // shared result handling
   const params = new URLSearchParams(location.search);
   if(params.get('shared')){
-    // decode and show
     const payload = params.get('data');
     if(payload){
       try{
@@ -29,7 +28,7 @@ async function init(){
 }
 
 function bindUI(){
-  qs('#startBtn').addEventListener('click', ()=>{showStep(1); showSection('survey')});
+  qs('#startBtn').addEventListener('click', ()=>{startQuickFlow();});
   qs('#resumeBtn').addEventListener('click', ()=>{loadHistory(); showSection('history')});
   qs('#langBtn').addEventListener('click', toggleLang);
   qs('#prevBtn')?.addEventListener('click', ()=>{prevStep()});
@@ -39,6 +38,14 @@ function bindUI(){
   qs('#shareBtn')?.addEventListener('click', shareCurrent);
   qs('#compareBtn')?.addEventListener('click', ()=>{qs('#compareArea').classList.toggle('hidden')});
   qs('#clearHistory')?.addEventListener('click', ()=>{localStorage.removeItem('camera_history'); loadHistory()});
+}
+
+function startQuickFlow(){
+  // show a compact quick-start modal (we reuse step 1 for simplicity)
+  // Pre-fill some fields with defaults and show first simplified step
+  showSection('survey');
+  showStep(1);
+  // emphasize quick mode: collapse advanced steps
 }
 
 function showSection(id){
@@ -59,12 +66,29 @@ function prevStep(){
 }
 
 function toggleLang(){
-  // minimal toggle: just swap button text
   const btn = qs('#langBtn');
-  if(btn.textContent.trim()==='EN'){btn.textContent='中'}else{btn.textContent='EN'}
+  if(btn.textContent.trim()==='EN'){btn.textContent='中'; localize('en');}else{btn.textContent='EN'; localize('zh');}
+}
+
+function localize(lang){
+  // Minimal localization: swap some labels. For full translation we will extend.
+  if(lang==='en'){
+    qs('.title').textContent = 'Camera Purchase Survey';
+    qs('.lead').textContent = 'Answer a few quick questions — we will recommend the most suitable camera + lens split.';
+    qs('#startBtn').textContent = 'Start survey';
+    qs('#resumeBtn').textContent = 'History';
+    qs('#submitBtn').textContent = 'Submit';
+  } else {
+    qs('.title').textContent = '中英双语 — 相机选购问卷';
+    qs('.lead').textContent = '回答几个简单问题，我们会基于预算、用途与偏好给出推荐（机身/镜头分配支持）。';
+    qs('#startBtn').textContent = '开始问卷 / Start survey';
+    qs('#resumeBtn').textContent = '查看历史 / History';
+    qs('#submitBtn').textContent = '提交并推荐 / Submit';
+  }
 }
 
 function collectForm(){
+  // Collect and normalize form values
   const min = Number(qs('#budgetMin').value||5000);
   const max = Number(qs('#budgetMax').value||50000);
   const ratio = qs('#bodyLensRatio').value || '5:5';
@@ -84,36 +108,30 @@ function collectForm(){
 }
 
 function scoreCamera(cam, form){
-  // weights from priorities
   const wImage = form.prioImage;
   const wAF = form.prioAF;
   const wIBIS = form.prioIBIS;
-  // normalize weights
-  const totalW = wImage + wAF + wIBIS + 1; // +1 for other
+  const totalW = wImage + wAF + wIBIS + 1;
   const Wi = wImage/totalW, Wa = wAF/totalW, Wb = wIBIS/totalW, Wo = 1/totalW;
 
-  // price fit
   const budget = (form.budgetMin + form.budgetMax)/2;
   const priceScore = cam.price<=budget ? 1 : Math.max(0, 1 - (cam.price - budget)/(budget));
 
-  // portability inverse weight
-  const portabilityScore = 1 - (cam.weight||700)/1200; // rough
+  const portabilityScore = 1 - (cam.weight||700)/1200;
+  const videoScore = (cam.video_score||5)/10;
 
-  // video needs
-  const videoScore = cam.video_score/10;
-
-  // combined
-  const score = priceScore*0.35 + (Wi*(cam.image_score/10) + Wa*(cam.af_score/10) + Wb*(cam.ibis_score/10) + Wo*portabilityScore)*0.55 + videoScore*0.1;
+  const core = (Wi*(cam.image_score||6)/10 + Wa*(cam.af_score||6)/10 + Wb*(cam.ibis_score||6)/10 + Wo*portabilityScore);
+  const score = priceScore*0.35 + core*0.55 + videoScore*0.1;
+  // penalize if camera lacks required feature (e.g., user needs IBIS but camera has none)
+  if(form.prioIBIS>=4 && (cam.ibis_score||0) < 4) return Math.round((score*0.8)*1000)/1000;
+  if(form.videoNeed==='required' && (cam.video_score||0) < 6) return Math.round((score*0.85)*1000)/1000;
   return Math.round(score*1000)/1000;
 }
 
 function filterAndRank(form){
-  // filter by brand
   const allowed = new Set(form.brands);
   let pool = cameras.filter(c => allowed.has(c.brand));
-  // filter by price soft: allow up to max*1.5
   pool = pool.filter(c => c.price <= form.budgetMax*1.5);
-  // compute score
   const scored = pool.map(c => ({...c, score: scoreCamera(c, form)}));
   scored.sort((a,b)=>b.score - a.score);
   return scored.slice(0,10);
@@ -126,23 +144,23 @@ function renderRecommendations(list, meta){
     const el = document.createElement('div'); el.className='card';
     el.innerHTML = `<h4>${cam.brand} ${cam.model} — ¥${cam.price}</h4>
       <p class="muted">${cam.description||''}</p>
-      <p>评分: <strong>${(cam.score||0)*100}</strong></p>
+      <p>评分: <strong>${Math.round((cam.score||0)*100)}</strong></p>
       <div style="display:flex;gap:8px;margin-top:8px">
         <button class="secondary" onclick='compareAdd("${cam.id}")'>加入对比</button>
         <button class="primary" onclick='selectForSave("${cam.id}")'>选择保存</button>
       </div>`;
     container.appendChild(el);
   });
-  // attach full list to compare area
   const comp = qs('#compareArea'); comp.innerHTML = '<h4>Top 10</h4>' + list.map(c=>`<div style="padding:6px 0;border-bottom:1px solid #f5f5f5">${c.brand} ${c.model} — ¥${c.price} — 分数:${c.score}</div>`).join('');
 }
 
 function onSubmit(e){
   e.preventDefault();
   const form = collectForm();
+  // Basic validation
+  if(form.budgetMin < 5000){alert('最低预算为 5000 RMB'); return}
   const ranked = filterAndRank(form);
   renderRecommendations(ranked, form);
-  // save into history (local)
   const recs = ranked.slice(0,3).map(r=>({id:r.id,brand:r.brand,model:r.model,price:r.price,score:r.score}));
   const entry = {ts:Date.now(), form, recs};
   const hist = JSON.parse(localStorage.getItem('camera_history')||'[]');
@@ -194,14 +212,12 @@ function shareCurrent(){
 }
 
 function compareAdd(id){
-  // naive: toggle in local compare list
   const cur = JSON.parse(localStorage.getItem('compare')||'[]');
   if(cur.includes(id)){alert('已在对比中');return}
   cur.push(id); localStorage.setItem('compare', JSON.stringify(cur)); alert('已加入对比（本地）');
 }
 
 function selectForSave(id){
-  // mark selected top
   alert('已标记该机型为保存（本地）。 若需持久化，请配置服务器端点。');
 }
 
