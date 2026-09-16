@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Camera Quiz Demo v3 (with price)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    // Front-end will use window.PRICE_SERVICE_BASE if set, otherwise default to relative /api
+    window.PRICE_SERVICE_BASE = window.PRICE_SERVICE_BASE || '';
+  </script>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:20px}
+    .q{margin-bottom:12px}
+    .hidden{display:none}
+    .btn{padding:8px 12px;border-radius:4px;border:1px solid #ccc;background:#f3f3f3;cursor:pointer}
+  </style>
+</head>
+<body>
+<h1>相机选购问卷 Demo（精简版）</h1>
+<p>回答下面问题（示例 20 个），最后会给出基于答案的推荐机型与镜头（演示用）。</p>
+<div id="quiz"></div>
+<div id="result" class="hidden">
+  <h2>推荐结果</h2>
+  <div id="recommendations"></div>
+</div>
+<script>
+const QUESTIONS = [
+  {id:'budget', q:'你的预算（人民币，摄影全套）', type:'choice', options:['<5000','5000-10000','10000-20000','20000-40000','>40000']},
+  {id:'primary_use', q:'主要用途', type:'choice', options:['人像','风光','婚礼','旅游/日常','直播/Vlog','体育/野生动物']},
+  {id:'prefer_brand', q:'偏好品牌（可多选）', type:'multi', options:['索尼','佳能','尼康','富士','松下']},
+  {id:'need_video', q:'是否需要高质量视频功能', type:'choice', options:['否','简单视频','专业视频']},
+  {id:'size_weight', q:'是否在意机身体积与重量', type:'choice', options:['不在意','有点在意','非常在意']},
+  {id:'autofocus', q:'是否有强烈对焦性能需求（体育/动物）', type:'choice', options:['否','中等','非常需要']},
+  {id:'lowlight', q:'是否经常在弱光环境拍摄', type:'choice', options:['否','偶尔','经常']},
+  {id:'stabilization', q:'是否需要机身防抖（IBIS）', type:'choice', options:['不需要','希望有','必须有']},
+  {id:'lens_budget', q:'你愿意为镜头单支投入（人民币）', type:'choice', options:['<2000','2000-5000','5000-10000','>10000']},
+  {id:'zoom_vs_prime', q:'偏好：变焦还是定焦', type:'choice', options:['变焦','定焦','都可以']},
+  {id:'travel_frequency', q:'旅行频率', type:'choice', options:['很少','每年几次','经常出差/旅行']},
+  {id:'still_or_video_ratio', q:'拍摄静态/视频占比', type:'choice', options:['主要静态','大约5:5','主要视频']},
+  {id:'future_upgrade', q:'是否计划未来升级系统（更换机身）', type:'choice', options:['不考虑','考虑1-2年','经常升级']},
+  {id:'used_or_new', q:'偏好：全新国行还是可接受二手/水货', type:'choice', options:['只要全新国行','可接受二手']},
+  {id:'shooting_distance', q:'常拍距离（靠近/中远/远）', type:'choice', options:['近焦','中等距离','远摄']},
+  {id:'event_size', q:'是否拍大型活动（需多焦段）', type:'choice', options:['否','小型','大型']},
+  {id:'portrait_preference', q:'是否首要拍人像（需要皮肤色彩/人像模式）', type:'choice', options:['否','一般','是']},
+  {id:'brand_ecosystem', q:'是否在意系统可选镜头数量（生态）', type:'choice', options:['不在意','在意','非常在意']},
+  {id:'sensor_size', q:'偏好传感器画幅', type:'choice', options:['全画幅','中画幅','APS-C (半画幅)','micro4/3']},
+  {id:'other', q:'其他偏好/说明（可空）', type:'text'}
+];
+
+const QUIZ = document.getElementById('quiz');
+const RESULT = document.getElementById('result');
+const RECO = document.getElementById('recommendations');
+
+function renderQuiz(){
+  QUESTIONS.forEach(q=>{
+    const div = document.createElement('div'); div.className='q';
+    const label = document.createElement('div'); label.innerText = q.q; div.appendChild(label);
+    if(q.type==='choice'){
+      q.options.forEach(opt=>{
+        const btn = document.createElement('button'); btn.className='btn'; btn.style.margin='6px'; btn.innerText=opt;
+        btn.onclick=()=>{document.querySelectorAll('[data-q="'+q.id+'"]').forEach(x=>x.classList.remove('selected')); btn.classList.add('selected'); btn.setAttribute('data-q', q.id); btn.setAttribute('data-val', opt); btn.dataset.q=q.id; btn.dataset.val=opt; btn.dataset.selected='1'; btn.dataset.qid=q.id; btn.setAttribute('data-q',q.id);}
+        btn.setAttribute('data-q',q.id);
+        div.appendChild(btn);
+      });
+    } else if(q.type==='multi'){
+      q.options.forEach(opt=>{
+        const chk = document.createElement('label'); chk.style.margin='6px';
+        const inp = document.createElement('input'); inp.type='checkbox'; inp.value=opt; inp.dataset.q=q.id; chk.appendChild(inp); chk.appendChild(document.createTextNode(' '+opt)); div.appendChild(chk);
+      });
+    } else if(q.type==='text'){
+      const ta = document.createElement('input'); ta.type='text'; ta.style.width='60%'; ta.dataset.q=q.id; div.appendChild(ta);
+    }
+    QUIZ.appendChild(div);
+  });
+  const submit = document.createElement('button'); submit.className='btn'; submit.innerText='提交并获取推荐'; submit.onclick=onSubmit; QUIZ.appendChild(submit);
+}
+
+function collectAnswers(){
+  const ans={};
+  QUESTIONS.forEach(q=>{
+    if(q.type==='choice'){
+      const sel = Array.from(document.querySelectorAll('[data-q="'+q.id+'"]')).find(b=>b.classList.contains('selected'));
+      ans[q.id]= sel? sel.dataset.val : null;
+    } else if(q.type==='multi'){
+      ans[q.id]= Array.from(document.querySelectorAll('input[type=checkbox][data-q="'+q.id+'"]:checked')).map(i=>i.value);
+    } else if(q.type==='text'){
+      ans[q.id]= document.querySelector('input[type=text][data-q="'+q.id+'"]').value;
+    }
+  });
+  return ans;
+}
+
+function scoreAndRecommend(ans){
+  // Very simple rule-based recommender for demo purposes
+  const budget = ans.budget || '<5000';
+  const sensor = ans.sensor_size || '全画幅';
+  const use = ans.primary_use || '旅游/日常';
+  const needVideo = ans.need_video || '否';
+
+  const recs = [];
+  // basic mapping
+  if(sensor==='中画幅' || budget=='>40000'){
+    recs.push({title:'Fujifilm GFX 50S II', reason:'追求极致画质/中画幅', price_query:'Fujifilm GFX 50S'});
+  }
+  if(sensor==='全画幅'){
+    if(use==='人像' || ans.portrait_preference==='是'){
+      recs.push({title:'Sony A7 IV', reason:'人像兼顾视频与照片，自动对焦强', price_query:'Sony A7 IV'});
+      recs.push({title:'Canon R6 Mark II', reason:'人像/婚礼优秀，色彩好', price_query:'Canon R6 Mark II'});
+    } else if(use==='风光'){
+      recs.push({title:'Nikon Z7 II', reason:'高像素更适合风光', price_query:'Nikon Z7 II'});
+      recs.push({title:'Sony A7R IV', reason:'高像素风光首选', price_query:'Sony A7R IV'});
+    } else if(use==='体育/野生动物' || ans.autofocus==='非常需要'){
+      recs.push({title:'Sony A1', reason:'顶级对焦与连拍', price_query:'Sony A1'});
+    } else {
+      recs.push({title:'Sony A7 IV', reason:'平衡型全能机', price_query:'Sony A7 IV'});
+      recs.push({title:'Canon R8', reason:'轻便全幅，适合旅行/视频', price_query:'Canon R8'});
+    }
+  }
+  // lenses — choose one versatile zoom
+  const lens = (budget==='5000-10000' || budget==='10000-20000') ? '24-70mm 镜头' : '24-105mm 镜头';
+  recs.forEach(r=> r.lens = lens);
+  return recs.slice(0,4);
+}
+
+async function fetchPrice(query){
+  const base = window.PRICE_SERVICE_BASE || '';
+  const url = (base? base + '/api/price?q=' : '/api/price?q=') + encodeURIComponent(query);
+  try{
+    const resp = await fetch(url);
+    if(!resp.ok) return null;
+    const j = await resp.json();
+    return j.results || null;
+  }catch(e){
+    console.error(e);
+    return null;
+  }
+}
+
+async function onSubmit(){
+  const ans = collectAnswers();
+  const recs = scoreAndRecommend(ans);
+  RECO.innerHTML='';
+  for(const r of recs){
+    const div = document.createElement('div');
+    const h = document.createElement('h3'); h.innerText = r.title; div.appendChild(h);
+    const p = document.createElement('p'); p.innerText = r.reason + '。 推荐镜头: ' + r.lens; div.appendChild(p);
+    const priceBox = document.createElement('div'); priceBox.innerText = '查询价格中...'; div.appendChild(priceBox);
+    RECO.appendChild(div);
+
+    // fetch price
+    const price = await fetchPrice(r.price_query || r.title);
+    if(price && price.length){
+      const item = price[0];
+      priceBox.innerHTML = `价格：${item.price? item.price+' 元' : '未找到'} 来源：${item.source||'mock'}` + (item.link? ` <a href="${item.link}" target="_blank">购买链接</a>`:'');
+    } else {
+      priceBox.innerText = '未查询到价格（demo 模式）';
+    }
+  }
+  RESULT.classList.remove('hidden');
+  window.scrollTo(0,document.body.scrollHeight);
+}
+
+renderQuiz();
+</script>
+</body>
+</html>
