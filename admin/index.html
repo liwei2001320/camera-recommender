@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - Camera Recommender</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar"><div class="container"><h1>Admin - Camera Recommender</h1></div></header>
+  <main class="container">
+    <section class="card">
+      <h3>Submissions</h3>
+      <div id="stats"></div>
+      <div id="list"></div>
+    </section>
+    <section class="card">
+      <h3>Instructions</h3>
+      <p class="muted">请在 <code>js/firebase-config.js</code> 中填入你的 Firebase 配置（或复制示例文件并重命名）。管理员页面会读取 Firestore 中 collection 名为 <code>submissions</code> 的文档。</p>
+    </section>
+  </main>
+  <script src="/js/firebase-config.example.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="/admin/js/admin.js"></script>
+</body>
+</html>
