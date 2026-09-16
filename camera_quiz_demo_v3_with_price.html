@@ -1,23 +1,24 @@
 <!doctype html>
-<html>
+<html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <title>Camera Quiz Demo v3 (with price)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script>
-    // Front-end will use window.PRICE_SERVICE_BASE if set, otherwise default to relative /api
-    window.PRICE_SERVICE_BASE = window.PRICE_SERVICE_BASE || '';
-  </script>
-  <style>
-    body{font-family:Arial,Helvetica,sans-serif;margin:20px}
-    .q{margin-bottom:12px}
-    .hidden{display:none}
-    .btn{padding:8px 12px;border-radius:4px;border:1px solid #ccc;background:#f3f3f3;cursor:pointer}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>相机与镜头推荐问卷（Demo v3 + 实时价格）</title>
+<script>window.PRICE_SERVICE_BASE='https://camera-recommender-production.up.railway.app';</script>
+<style>
+  body{font-family: system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif; background:#f5f7fb; color:#071022;}
+  .container{max-width:1100px;margin:18px auto;padding:18px;background:#fff;border-radius:8px;box-shadow:0 6px 22px rgba(8,15,30,.06)}
+  h1{font-size:20px;margin:0 0 14px}
+  .q{margin-bottom:12px}
+  .btn{padding:8px 12px;border-radius:6px;border:1px solid #e3e7ef;background:#f7f9fc;cursor:pointer}
+  .selected{background:#dfefff}
+  .hidden{display:none}
+</style>
 </head>
 <body>
-<h1>相机选购问卷 Demo（精简版）</h1>
-<p>回答下面问题（示例 20 个），最后会给出基于答案的推荐机型与镜头（演示用）。</p>
+<div class="container">
+<h1>相机与镜头推荐问卷 Demo（含实时价格）</h1>
+<p>这是一个演示版问卷（前端 + 后端价格查询）。品牌和画幅有限制：只参考索尼/佳能/尼康/富士/松下，且只显示国行全新在售价格（来自京东/淘宝/拼多多聚合）。</p>
 <div id="quiz"></div>
 <div id="result" class="hidden">
   <h2>推荐结果</h2>
@@ -26,7 +27,7 @@
 <script>
 const QUESTIONS = [
   {id:'budget', q:'你的预算（人民币，摄影全套）', type:'choice', options:['<5000','5000-10000','10000-20000','20000-40000','>40000']},
-  {id:'primary_use', q:'主要用途', type:'choice', options:['人像','风光','婚礼','旅游/日常','直播/Vlog','体育/野生动物']},
+  {id:'primary_use', q:'主要用途', type:'choice', options:['人像','风光','婚礼','旅行/日常','直播/Vlog','体育/野生动物']},
   {id:'prefer_brand', q:'偏好品牌（可多选）', type:'multi', options:['索尼','佳能','尼康','富士','松下']},
   {id:'need_video', q:'是否需要高质量视频功能', type:'choice', options:['否','简单视频','专业视频']},
   {id:'size_weight', q:'是否在意机身体积与重量', type:'choice', options:['不在意','有点在意','非常在意']},
@@ -39,7 +40,7 @@ const QUESTIONS = [
   {id:'still_or_video_ratio', q:'拍摄静态/视频占比', type:'choice', options:['主要静态','大约5:5','主要视频']},
   {id:'future_upgrade', q:'是否计划未来升级系统（更换机身）', type:'choice', options:['不考虑','考虑1-2年','经常升级']},
   {id:'used_or_new', q:'偏好：全新国行还是可接受二手/水货', type:'choice', options:['只要全新国行','可接受二手']},
-  {id:'shooting_distance', q:'常拍距离（靠近/中远/远）', type:'choice', options:['近焦','中等距离','远摄']},
+  {id:'shooting_distance', q:'常拍距离（近/中/远）', type:'choice', options:['近焦','中等距离','远摄']},
   {id:'event_size', q:'是否拍大型活动（需多焦段）', type:'choice', options:['否','小型','大型']},
   {id:'portrait_preference', q:'是否首要拍人像（需要皮肤色彩/人像模式）', type:'choice', options:['否','一般','是']},
   {id:'brand_ecosystem', q:'是否在意系统可选镜头数量（生态）', type:'choice', options:['不在意','在意','非常在意']},
@@ -91,14 +92,10 @@ function collectAnswers(){
 }
 
 function scoreAndRecommend(ans){
-  // Very simple rule-based recommender for demo purposes
   const budget = ans.budget || '<5000';
   const sensor = ans.sensor_size || '全画幅';
-  const use = ans.primary_use || '旅游/日常';
-  const needVideo = ans.need_video || '否';
-
+  const use = ans.primary_use || '旅行/日常';
   const recs = [];
-  // basic mapping
   if(sensor==='中画幅' || budget=='>40000'){
     recs.push({title:'Fujifilm GFX 50S II', reason:'追求极致画质/中画幅', price_query:'Fujifilm GFX 50S'});
   }
@@ -116,7 +113,6 @@ function scoreAndRecommend(ans){
       recs.push({title:'Canon R8', reason:'轻便全幅，适合旅行/视频', price_query:'Canon R8'});
     }
   }
-  // lenses — choose one versatile zoom
   const lens = (budget==='5000-10000' || budget==='10000-20000') ? '24-70mm 镜头' : '24-105mm 镜头';
   recs.forEach(r=> r.lens = lens);
   return recs.slice(0,4);
@@ -129,7 +125,7 @@ async function fetchPrice(query){
     const resp = await fetch(url);
     if(!resp.ok) return null;
     const j = await resp.json();
-    return j.results || null;
+    return j.results || j || null;
   }catch(e){
     console.error(e);
     return null;
@@ -146,12 +142,12 @@ async function onSubmit(){
     const p = document.createElement('p'); p.innerText = r.reason + '。 推荐镜头: ' + r.lens; div.appendChild(p);
     const priceBox = document.createElement('div'); priceBox.innerText = '查询价格中...'; div.appendChild(priceBox);
     RECO.appendChild(div);
-
-    // fetch price
     const price = await fetchPrice(r.price_query || r.title);
     if(price && price.length){
       const item = price[0];
       priceBox.innerHTML = `价格：${item.price? item.price+' 元' : '未找到'} 来源：${item.source||'mock'}` + (item.link? ` <a href="${item.link}" target="_blank">购买链接</a>`:'');
+    } else if(price && price.price){
+      priceBox.innerHTML = `价格：${price.price} 元 来源：${price.source||'mock'}` + (price.link? ` <a href="${price.link}" target="_blank">购买链接</a>`:'');
     } else {
       priceBox.innerText = '未查询到价格（demo 模式）';
     }
@@ -162,5 +158,6 @@ async function onSubmit(){
 
 renderQuiz();
 </script>
+</div>
 </body>
 </html>
