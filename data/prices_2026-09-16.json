@@ -1,17 +1,1 @@
-{
-  "meta": {"date": "2026-09-16", "cur": "CNY", "notes": "示例快照：价格来源为公开电商/品牌官网/媒体报道，实际售价以电商平台为准"},
-  "models": [
-    {"brand": "Canon", "model": "EOS R8 Mark II", "variant": "机身", "price_cny": 12700, "price_usd": 1899, "source": "Canon JP / The Verge", "source_url": "https://www.theverge.com/tech/995430/canon-eos-r8-mark-11-full-frame-digital-camera-pricing-availability", "note": "日本/美版定价换算为CNY估算。国内国行/京东价可能不同。"},
-    {"brand": "Canon", "model": "EOS R8", "variant": "机身", "price_cny": 7899, "price_usd": 999, "source": "京东/ZOL 参考", "source_url": "https://dcdv.zol.com.cn/1143/11431929.html", "note": "示例参考价"},
-    {"brand": "Canon", "model": "EOS R6 Mark II", "variant": "机身", "price_cny": 13399, "price_usd": 1599, "source": "媒体报道/电商", "source_url": "https://dcdv.zol.com.cn/1130/11304614.html", "note": "示例参考价"},
-    {"brand": "Sony", "model": "A7 V (A7M5)", "variant": "机身", "price_cny": 17399, "price_usd": 2099, "source": "媒体/电商", "source_url": "https://dcdv.zol.com.cn/1172/11725126.html", "note": "示例参考价"},
-    {"brand": "Sony", "model": "A7R VI (A7R6)", "variant": "机身", "price_cny": 31999, "price_usd": 3899, "source": "多家零售", "source_url": "https://detail.zol.com.cn/digital_camera_index/subcate15_167_list_1_s8953-p3820_1_1_172891_1.html", "note": "示例参考价"},
-    {"brand": "Sony", "model": "FX5", "variant": "机身", "price_cny": 32000, "price_usd": 3900, "source": "Sony 官方", "source_url": "https://www.sony.com.cn", "note": "示例参考价（影像机线）"},
-    {"brand": "Nikon", "model": "Z6 III (Z63)", "variant": "机身", "price_cny": 14029, "price_usd": 1699, "source": "媒体/电商", "source_url": "https://dcdv.zol.com.cn/1132/11327955.html", "note": "示例参考价"},
-    {"brand": "Nikon", "model": "ZR", "variant": "机身", "price_cny": 26010, "price_usd": 2601, "source": "零售商页面", "source_url": "https://tkfoto.com.sg/products/nikon-zr", "note": "海外零售价示例，国内渠道可能不同"},
-    {"brand": "Nikon", "model": "Z8", "variant": "机身", "price_cny": 21349, "price_usd": 2599, "source": "京东参考", "source_url": "https://jd.zol.com.cn/1187/11878880.html", "note": "示例参考价"},
-    {"brand": "Panasonic", "model": "LUMIX S1M2", "variant": "机身", "price_cny": 22398, "price_usd": 2699, "source": "媒体/官网", "source_url": "https://info.xitek.com/allpage/news/202505/15-369521.html", "note": "示例参考价"},
-    {"brand": "Panasonic", "model": "LUMIX S12", "variant": "机身", "price_cny": 8999, "price_usd": 1099, "source": "媒体/零售", "source_url": "https://www.panasonic.com/", "note": "示例参考价"},
-    {"brand": "Fujifilm", "model": "X-S20", "variant": "机身", "price_cny": 9499, "price_usd": 1199, "source": "ZOL/电商", "source_url": "https://dcdv.zol.com.cn/1181/11811958.html", "note": "示例参考价"}
-  ]
-}
+��Zrםm��
