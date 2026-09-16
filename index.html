@@ -1,172 +1,21 @@
 <!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>相机调查与推荐 | Camera Recommender</title>
-  <meta name="description" content="中英双语的相机调查问卷与推荐工具。支持保存历史、导出、机型对比。" />
-  <link rel="stylesheet" href="css/style.css" />
-  <meta property="og:title" content="Camera Recommender" />
-  <meta property="og:description" content="中英双语的相机调查问卷与推荐工具。" />
-</head>
-<body>
-  <header class="topbar">
-    <div class="container">
-      <h1 id="brand">Camera Recommender</h1>
-      <div class="controls">
-        <button id="langBtn">EN</button>
-        <a class="github" href="https://github.com/liwei2001320/camera-recommender" target="_blank">Repo</a>
-      </div>
-    </div>
-  </header>
-
-  <main class="container">
-    <section id="intro" class="card">
-      <h2 class="title">中英双语 — 相机选购问卷</h2>
-      <p class="lead">回答几个简单问题，我们会基于预算、用途与偏好给出推荐（机身/镜头分配支持）。</p>
-      <div class="actions">
-        <button id="startBtn" class="primary">开始问卷 / Start survey</button>
-        <button id="resumeBtn" class="secondary">查看历史 / History</button>
-      </div>
-    </section>
-
-    <section id="survey" class="card hidden">
-      <form id="surveyForm">
-        <div class="step" data-step="1">
-          <h3 class="step-title">问题 1 — 总预算 / Budget</h3>
-          <p>请选择你的总预算区间（RMB）。可选 A/B/C 快速选择，或选择“自定义”填写准确区间。</p>
-
-          <div id="budgetOptions" class="form-group">
-            <label><input type="radio" name="budgetOpt" value="A"> A：5,000 — 15,000 RMB（入门 / 爱好者）</label><br>
-            <label><input type="radio" name="budgetOpt" value="B"> B：15,001 — 30,000 RMB（进阶 / 半专业）</label><br>
-            <label><input type="radio" name="budgetOpt" value="C"> C：30,001 — 50,000 RMB（专业 / 高端）</label><br>
-            <label><input type="radio" name="budgetOpt" value="custom"> 自定义</label>
-            <div id="customBudgetInputs" style="display:none; margin-top:8px;">
-              最低：<input id="customMin" type="number" placeholder="最低预算 (RMB)"/> 最高：<input id="customMax" type="number" placeholder="最高预算 (RMB)"/>
-            </div>
-          </div>
-
-          <div id="budgetHint" style="color:#666; margin-top:12px;"></div>
-
-          <!-- 隐藏字段，提交时会发送 -->
-          <input type="hidden" id="budgetMin" name="budgetMin" value="" />
-          <input type="hidden" id="budgetMax" name="budgetMax" value="" />
-        </div>
-
-        <div class="step hidden" data-step="2">
-          <h3 class="step-title">问题 2 — 机身 / 镜头 分配</h3>
-          <p>请选择你打算把总预算中分配给机身与镜头的大致比例（预设或自定义）。</p>
-
-          <div id="allocOptions" class="form-group">
-            <label><input type="radio" name="allocOpt" value="50-50"> 5:5（机身50% / 镜头50%） — 均衡推荐</label><br>
-            <label><input type="radio" name="allocOpt" value="80-20"> 8:2（机身80% / 镜头20%） — 偏机身/一次性投入</label><br>
-            <label><input type="radio" name="allocOpt" value="20-80"> 2:8（机身20% / 镜头80%） — 偏镜头/长期扩展</label><br>
-            <label><input type="radio" name="allocOpt" value="customAlloc"> 自定义</label>
-            <div id="customAllocInputs" style="display:none; margin-top:8px;">
-              机身占比：<input id="bodyPercent" type="range" min="10" max="90" step="5" value="50" />
-              <span id="bodyPercentVal">50%</span>
-            </div>
-          </div>
-
-          <!-- 隐藏字段 -->
-          <input type="hidden" id="bodyBudget" name="bodyBudget" value="" />
-          <input type="hidden" id="lensBudget" name="lensBudget" value="" />
-          <input type="hidden" id="bodyPercentHidden" name="bodyPercent" value="" />
-        </div>
-
-        <div class="step hidden" data-step="3">
-          <h3 class="step-title">用途 & 偏好 / Use & Preferences</h3>
-          <label>主要用途
-            <select id="useCase" multiple>
-              <option value="travel">旅游 / Travel</option>
-              <option value="portrait">人像 / Portrait</option>
-              <option value="landscape">风光 / Landscape</option>
-              <option value="street">街拍 / Street</option>
-              <option value="wedding">婚礼 / Wedding</option>
-              <option value="video">视频 / Video</option>
-              <option value="studio">商业/影棚 / Studio</option>
-            </select>
-          </label>
-
-          <label>便携性偏好 (1-5) <input type="range" id="portability" min="1" max="5" value="3" /></label>
-          <label>画质优先级 (1-5) <input type="range" id="prioImage" min="1" max="5" value="4" /></label>
-          <label>对焦优先级 (1-5) <input type="range" id="prioAF" min="1" max="5" value="4" /></label>
-          <label>防抖优先级 (1-5) <input type="range" id="prioIBIS" min="1" max="5" value="3" /></label>
-          <label>后期处理偏好
-            <select id="postProcessing">
-              <option value="light">轻度（直出优先）</option>
-              <option value="medium">中度（常调色）</option>
-              <option value="heavy">重度（RAW 精修）</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="step hidden" data-step="4">
-          <h3 class="step-title">品牌筛选 / Brands</h3>
-          <label><input type="checkbox" class="brand" value="Panasonic" checked /> Panasonic / 松下</label>
-          <label><input type="checkbox" class="brand" value="Sony" checked /> Sony / 索尼</label>
-          <label><input type="checkbox" class="brand" value="Nikon" checked /> Nikon / 尼康</label>
-          <label><input type="checkbox" class="brand" value="Canon" checked /> Canon / 佳能</label>
-          <label><input type="checkbox" class="brand" value="Fujifilm" checked /> Fujifilm / 富士</label>
-        </div>
-
-        <div class="step hidden" data-step="5">
-          <h3 class="step-title">照片 vs 视频 / Photo vs Video</h3>
-          <label>你对视频的需求<strong>(必要/可选/无需求)</strong>
-            <select id="videoNeed">
-              <option value="required">必要 / Required</option>
-              <option value="optional">可选 / Optional</option>
-              <option value="none">无需求 / None</option>
-            </select>
-          </label>
-
-          <label>你是否经常需要高帧率(>60fps)视频？
-            <select id="highFPS"><option value="yes">是</option><option value="no">否</option></select>
-          </label>
-        </div>
-
-        <div class="step hidden" data-step="6">
-          <h3 class="step-title">确认 / Confirm</h3>
-          <p class="muted">检查并点击提交 / Review and submit</p>
-          <div class="actions">
-            <button type="button" id="prevBtn" class="secondary">上一步 / Prev</button>
-            <button type="submit" id="submitBtn" class="primary">提交并推荐 / Submit</button>
-          </div>
-        </div>
-      </form>
-    </section>
-
-    <section id="result" class="card hidden">
-      <h3>推荐结果 / Recommendations</h3>
-      <div id="recommendations"></div>
-      <div class="actions">
-        <button id="compareBtn" class="secondary">对比所选 / Compare</button>
-        <button id="saveBtn" class="primary">保存结果 / Save</button>
-        <button id="exportBtn" class="secondary">导出 CSV / Export CSV</button>
-        <button id="shareBtn" class="secondary">生成分享链接 / Share</button>
-      </div>
-      <div id="compareArea" class="hidden"></div>
-    </section>
-
-    <section id="history" class="card hidden">
-      <h3>历史结果 / History</h3>
-      <div id="historyList"></div>
-      <div class="actions"><button id="clearHistory" class="secondary">清空历史 / Clear</button></div>
-    </section>
-
-    <footer class="muted center">© Camera Recommender — 中英双语 · 极简设计</footer>
-  </main>
-
-  <script src="js/app.js"></script>
-  <script src="js/survey-budget.js"></script>
-
-  <!-- Firebase SDKs：必须按顺序加载 -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-
-  <!-- 我已放到仓库的本地配置/初始化文件 -->
-  <script src="/js/firebase-config.local.js"></script>
-  <script src="/js/firebase-init.local.js"></script>
-
-</body>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <!-- primary: jsDelivr CDN (已对括号编码) -->
+    <meta http-equiv="refresh" content="0;url=https://cdn.jsdelivr.net/gh/liwei2001320/camera-recommender@main/camera_quiz_demo_v3%281%29.html" />
+    <script>
+      // JS 备用跳转（同样指向 jsDelivr）
+      location.href = 'https://cdn.jsdelivr.net/gh/liwei2001320/camera-recommender@main/camera_quiz_demo_v3%281%29.html';
+    </script>
+    <title>Redirecting to Camera quiz demo3...</title>
+  </head>
+  <body>
+    Redirecting to demo3 — if you are not redirected automatically, click:
+    <a href="https://cdn.jsdelivr.net/gh/liwei2001320/camera-recommender@main/camera_quiz_demo_v3(1).html">demo3（直接打开）</a>
+    <p>备用 raw 链接（如果 CDN 不工作可尝试）：</p>
+    <a href="https://raw.githubusercontent.com/liwei2001320/camera-recommender/main/camera_quiz_demo_v3(1).html">
+      raw.githubusercontent.com demo3
+    </a>
+  </body>
 </html>
