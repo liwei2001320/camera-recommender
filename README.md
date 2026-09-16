@@ -53,3 +53,6 @@ service cloud.firestore {
 - 更多机型、样张、视频样本
 - 登录/用户面板、结果导出 PDF
 
+---
+
+Trigger redeploy: 2026-09-16T12:38:30Z
