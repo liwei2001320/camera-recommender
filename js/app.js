@@ -187,7 +187,14 @@ function replay(idx){
 }
 
 function saveCurrent(){
-  alert('保存到服务器功能尚未配置。当前数据已保存在本地历史。若需开启后台存储，我可以接入 Airtable/Google Sheets/Firebase。');
+  const hist = JSON.parse(localStorage.getItem('camera_history')||'[]');
+  if(hist.length===0){alert('没有可保存的历史，请先提交问卷');return}
+  const item = hist[0];
+  if(window.sendSubmission){
+    sendSubmission(item).then(r=>{alert('已保存到后台 (id:'+ (r && r.id? r.id:'unknown') +')')}).catch(e=>{console.warn(e); alert('保存到后台失败，已保存在本地历史。')});
+  } else {
+    alert('未配置后台，已保存在本地历史。若需开启 Firebase 请在 js/firebase-config.js 中填入配置。');
+  }
 }
 
 function exportCSV(){
