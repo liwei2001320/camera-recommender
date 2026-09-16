@@ -88,22 +88,22 @@ function localize(lang){
 }
 
 function collectForm(){
-  // Collect and normalize form values
+  // Collect and normalize form values (updated to new budget UI)
   const min = Number(qs('#budgetMin').value||5000);
   const max = Number(qs('#budgetMax').value||50000);
-  const ratio = qs('#bodyLensRatio').value || '5:5';
-  const [b,l] = ratio.split(':').map(x=>Number(x)||5);
-  const bodyShare = b/(b+l);
-  const uses = Array.from(qs('#useCase').selectedOptions).map(o=>o.value);
+  // bodyPercent slider or default 50
+  const bodyPercent = Number(qs('#bodyPercent')?.value || 50);
+  const bodyShare = bodyPercent/100;
+  const uses = Array.from(qs('#useCase')?.selectedOptions||[]).map(o=>o.value);
   return {
     budgetMin:min,budgetMax:max,bodyShare,uses,
-    portability: Number(qs('#portability').value||3),
-    prioImage: Number(qs('#prioImage').value||4),
-    prioAF: Number(qs('#prioAF').value||4),
-    prioIBIS: Number(qs('#prioIBIS').value||3),
-    postProcessing: qs('#postProcessing').value,
+    portability: Number(qs('#portability')?.value||3),
+    prioImage: Number(qs('#prioImage')?.value||4),
+    prioAF: Number(qs('#prioAF')?.value||4),
+    prioIBIS: Number(qs('#prioIBIS')?.value||3),
+    postProcessing: qs('#postProcessing')?.value || 'medium',
     brands: qsa('.brand:checked').map(c=>c.value),
-    videoNeed: qs('#videoNeed').value, highFPS: qs('#highFPS').value
+    videoNeed: qs('#videoNeed')?.value || 'optional', highFPS: qs('#highFPS')?.value || 'no'
   }
 }
 
@@ -122,7 +122,6 @@ function scoreCamera(cam, form){
 
   const core = (Wi*(cam.image_score||6)/10 + Wa*(cam.af_score||6)/10 + Wb*(cam.ibis_score||6)/10 + Wo*portabilityScore);
   const score = priceScore*0.35 + core*0.55 + videoScore*0.1;
-  // penalize if camera lacks required feature (e.g., user needs IBIS but camera has none)
   if(form.prioIBIS>=4 && (cam.ibis_score||0) < 4) return Math.round((score*0.8)*1000)/1000;
   if(form.videoNeed==='required' && (cam.video_score||0) < 6) return Math.round((score*0.85)*1000)/1000;
   return Math.round(score*1000)/1000;
