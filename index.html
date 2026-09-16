@@ -33,44 +33,48 @@
     <section id="survey" class="card hidden">
       <form id="surveyForm">
         <div class="step" data-step="1">
-          <h3 class="step-title">预算 / Budget</h3>
+          <h3 class="step-title">问题 1 — 总预算 / Budget</h3>
+          <p>请选择你的总预算区间（RMB）。可选 A/B/C 快速选择，或选择“自定义”填写准确区间。</p>
 
-  <div id="budgetOptions" class="form-group">
-    <label><input type="radio" name="budgetOpt" value="5000-8000"> 5,000 — 8,000 RMB</label><br>
-    <label><input type="radio" name="budgetOpt" value="8001-15000"> 8,001 — 15,000 RMB</label><br>
-    <label><input type="radio" name="budgetOpt" value="15001-25000"> 15,001 — 25,000 RMB</label><br>
-    <label><input type="radio" name="budgetOpt" value="25001-40000"> 25,001 — 40,000 RMB</label><br>
-    <label><input type="radio" name="budgetOpt" value="40001-50000"> 40,001 — 50,000 RMB</label><br>
-    <label><input type="radio" name="budgetOpt" value="custom"> 自定义</label>
-    <div id="customBudgetInputs" style="display:none; margin-top:8px;">
-      最低：<input id="customMin" type="number" placeholder="最低预算 (RMB)"/> 最高：<input id="customMax" type="number" placeholder="最高预算 (RMB)"/>
-    </div>
-  </div>
+          <div id="budgetOptions" class="form-group">
+            <label><input type="radio" name="budgetOpt" value="A"> A：5,000 — 15,000 RMB（入门 / 爱好者）</label><br>
+            <label><input type="radio" name="budgetOpt" value="B"> B：15,001 — 30,000 RMB（进阶 / 半专业）</label><br>
+            <label><input type="radio" name="budgetOpt" value="C"> C：30,001 — 50,000 RMB（专业 / 高端）</label><br>
+            <label><input type="radio" name="budgetOpt" value="custom"> 自定义</label>
+            <div id="customBudgetInputs" style="display:none; margin-top:8px;">
+              最低：<input id="customMin" type="number" placeholder="最低预算 (RMB)"/> 最高：<input id="customMax" type="number" placeholder="最高预算 (RMB)"/>
+            </div>
+          </div>
 
-  <div id="allocOptions" class="form-group" style="margin-top:18px;">
-    <label>机身 / 镜头 预算分配</label>
-    <div>
-      <label><input type="radio" name="allocOpt" value="50-50"> 5:5（机身50% / 镜头50%）</label><br>
-      <label><input type="radio" name="allocOpt" value="80-20"> 8:2（机身80% / 镜头20%）</label><br>
-      <label><input type="radio" name="allocOpt" value="20-80"> 2:8（机身20% / 镜头80%）</label><br>
-      <label><input type="radio" name="allocOpt" value="customAlloc"> 自定义</label>
-      <div id="customAllocInputs" style="display:none; margin-top:8px;">
-        机身占比：<input id="bodyPercent" type="range" min="10" max="90" step="5" value="50" />
-        <span id="bodyPercentVal">50%</span>
-      </div>
-    </div>
-  </div>
+          <div id="budgetHint" style="color:#666; margin-top:12px;"></div>
 
-  <div id="budgetHint" style="color:#666; margin-top:12px;"></div>
-
-  <!-- Hidden fields to be submitted -->
-  <input type="hidden" id="budgetMin" name="budgetMin" value="" />
-  <input type="hidden" id="budgetMax" name="budgetMax" value="" />
-  <input type="hidden" id="bodyBudget" name="bodyBudget" value="" />
-  <input type="hidden" id="lensBudget" name="lensBudget" value="" />
+          <!-- 隐藏字段，提交时会发送 -->
+          <input type="hidden" id="budgetMin" name="budgetMin" value="" />
+          <input type="hidden" id="budgetMax" name="budgetMax" value="" />
         </div>
 
         <div class="step hidden" data-step="2">
+          <h3 class="step-title">问题 2 — 机身 / 镜头 分配</h3>
+          <p>请选择你打算把总预算中分配给机身与镜头的大致比例（预设或自定义）。</p>
+
+          <div id="allocOptions" class="form-group">
+            <label><input type="radio" name="allocOpt" value="50-50"> 5:5（机身50% / 镜头50%） — 均衡推荐</label><br>
+            <label><input type="radio" name="allocOpt" value="80-20"> 8:2（机身80% / 镜头20%） — 偏机身/一次性投入</label><br>
+            <label><input type="radio" name="allocOpt" value="20-80"> 2:8（机身20% / 镜头80%） — 偏镜头/长期扩展</label><br>
+            <label><input type="radio" name="allocOpt" value="customAlloc"> 自定义</label>
+            <div id="customAllocInputs" style="display:none; margin-top:8px;">
+              机身占比：<input id="bodyPercent" type="range" min="10" max="90" step="5" value="50" />
+              <span id="bodyPercentVal">50%</span>
+            </div>
+          </div>
+
+          <!-- 隐藏字段 -->
+          <input type="hidden" id="bodyBudget" name="bodyBudget" value="" />
+          <input type="hidden" id="lensBudget" name="lensBudget" value="" />
+          <input type="hidden" id="bodyPercentHidden" name="bodyPercent" value="" />
+        </div>
+
+        <div class="step hidden" data-step="3">
           <h3 class="step-title">用途 & 偏好 / Use & Preferences</h3>
           <label>主要用途
             <select id="useCase" multiple>
@@ -97,7 +101,7 @@
           </label>
         </div>
 
-        <div class="step hidden" data-step="3">
+        <div class="step hidden" data-step="4">
           <h3 class="step-title">品牌筛选 / Brands</h3>
           <label><input type="checkbox" class="brand" value="Panasonic" checked /> Panasonic / 松下</label>
           <label><input type="checkbox" class="brand" value="Sony" checked /> Sony / 索尼</label>
@@ -106,7 +110,7 @@
           <label><input type="checkbox" class="brand" value="Fujifilm" checked /> Fujifilm / 富士</label>
         </div>
 
-        <div class="step hidden" data-step="4">
+        <div class="step hidden" data-step="5">
           <h3 class="step-title">照片 vs 视频 / Photo vs Video</h3>
           <label>你对视频的需求<strong>(必要/可选/无需求)</strong>
             <select id="videoNeed">
@@ -121,7 +125,7 @@
           </label>
         </div>
 
-        <div class="step hidden" data-step="5">
+        <div class="step hidden" data-step="6">
           <h3 class="step-title">确认 / Confirm</h3>
           <p class="muted">检查并点击提交 / Review and submit</p>
           <div class="actions">
